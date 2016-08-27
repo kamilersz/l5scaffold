@@ -3,50 +3,207 @@
 @section('header')
     <div class="page-header clearfix">
         <h1>
-            <i class="glyphicon glyphicon-align-justify"></i> {{Class}}
-            <a class="btn btn-success pull-right" href="{{ route('{{prefix}}{{class}}.create') }}"><i class="glyphicon glyphicon-plus"></i> Create</a>
+            <i class="fa fa-align-justify"></i> {{Class}}
+            <a class="btn btn-success pull-right" href="{{ route('{{prefix}}{{class}}.create') }}"><i class="fa fa-plus"></i> Create</a>
         </h1>
 
     </div>
 @endsection
 
 @section('content')
+<section id="vm">
     <div class="row">
         <div class="col-md-12">
-            @if(${{class}}->count())
-                <table class="table table-condensed table-striped">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            {{header_fields}}
-                            <th class="text-right">OPTIONS</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-                        @foreach(${{class}} as ${{classSingle}})
-                            <tr>
-                                <td>{{${{classSingle}}->id}}</td>
-                                {{content_fields}}
-                                <td class="text-right">
-                                    <a class="btn btn-xs btn-primary" href="{{ route('{{prefix}}{{class}}.show', ${{classSingle}}->id) }}"><i class="glyphicon glyphicon-eye-open"></i> View</a>
-                                    <a class="btn btn-xs btn-warning" href="{{ route('{{prefix}}{{class}}.edit', ${{classSingle}}->id) }}"><i class="glyphicon glyphicon-edit"></i> Edit</a>
-                                    <form action="{{ route('{{prefix}}{{class}}.destroy', ${{classSingle}}->id) }}" method="POST" style="display: inline;" onsubmit="if(confirm('Delete? Are you sure?')) { return true } else {return false };">
-                                        <input type="hidden" name="_method" value="DELETE">
-                                        <input type="hidden" name="_token" value="{{ csrf_token() }}">
-                                        <button type="submit" class="btn btn-xs btn-danger"><i class="glyphicon glyphicon-trash"></i> Delete</button>
-                                    </form>
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-                {!! ${{class}}->render() !!}
-            @else
-                <h3 class="text-center alert alert-info">Empty!</h3>
-            @endif
-
+            Tampilkan &nbsp;
+            <select class="input-sm" v-model="pagination.perpage" v-on:change="changePage()">
+                <option value="10">10</option>
+                <option value="20">20</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+            </select>
+            Entri &nbsp;
+            <div class="animated fadeIn loading pull-right" v-show="isLoading">
+                <h3><i class="fa fa-refresh fa-spin"></i> Sedang memuat data...</h3>
+            </div>
+            <div class="form-group pull-right">
+                Cari &nbsp;
+                <input class="input-sm" type="text" v-model="search_input" v-on:keyup.enter="doSearch()">
+            </div>
         </div>
     </div>
+    <div class="row">
+        <div class="col-md-12">
+            <table class="table table-condensed table-striped" v-bind:class="{ 'dimmed': isLoading }">
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        {{header_fields}}
+                        <th class="text-right">OPTIONS</th>
+                    </tr>
+                </thead>
 
+                <tbody>
+                    <tr v-for="(index,item) in items">
+                        <td v-text="(pagination.page - 1) * pagination.perpage + 1 + index"></td>
+                        {{content_fields}}
+                        <td class="text-right">
+                            <a class="btn btn-xs btn-primary" v-bind:href="{{ route('{{prefix}}{{class}}.show') }}/@{{item.id}}"><i class="fa fa-eye"></i> View</a>
+                            <a class="btn btn-xs btn-warning" v-bind:href="{{ route('{{prefix}}{{class}}.edit') }}/@{{item.id}}"><i class="fa fa-edit"></i> Edit</a>
+                            <form v-bind:action="{{ route('{{prefix}}{{class}}.destroy') }}/@{{item.id}}" method="POST" style="display: inline;" onsubmit="if(confirm('Delete? Are you sure?')) { return true } else {return false };">
+                                <input type="hidden" name="_method" value="DELETE">
+                                <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-xs btn-danger"><i class="fa fa-trash"></i> Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            {!! ${{class}}->render() !!}
+            <div class="form-inline">
+                <div class="form-group" v-show="this.pagination.count">
+                    Page &nbsp;
+                    <!--first page button-->
+                    <a class="btn btn-default btn-xs" v-on:click="paginate('first')"><i class="fa fa-step-backward"></i></a>
+                    <a class="btn btn-default btn-xs" v-on:click="paginate('previous')"><i class="fa fa-chevron-left"></i></a>
+                    <input class="input-sm" type="text" size="4" v-model="pagination.page" v-on:change="changePage()">
+                    <a class="btn btn-default btn-xs" v-on:click="paginate('next')"><i class="fa fa-chevron-right"></i></a>
+                    <a class="btn btn-default btn-xs" v-on:click="paginate('last')"><i class="fa fa-step-forward"></i></a>
+                    &nbsp;from&nbsp;@{{ Math.floor(pagination.count / pagination.perpage) + 1 }}
+                    &nbsp;&nbsp;&nbsp;&nbsp; Entry&nbsp;@{{ (pagination.page - 1) * pagination.perpage + 1 }}&nbsp;sd&nbsp;@{{ Math.min(pagination.count, pagination.page    * pagination.perpage) }}&nbsp;dari&nbsp;@{{ pagination.count }}</td>
+                </div>
+                <div class="form-group" v-else>
+                    Tidak ada data
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
 @endsection
+
+@section('scripts')
+<script type="text/javascript">
+
+var page = '${{classSingle}}';
+var vm = new Vue({
+    el: '#vm',
+    data: {
+        isLoading: true,
+        items: [],
+        pagination: {
+            page: 1,
+            previous: false,
+            next: false,
+            perpage: 20,
+            count: 0,
+        },
+        params: {
+        },
+        search: '',
+        search_input: '',
+        sortColumn: null,
+        sortDir: null,
+    },
+    methods: {
+        paginate: function (direction) {
+            if (direction === 'previous') {
+                if (this.pagination.page > 1) {
+                    --this.pagination.page;
+                    this.changePage();
+                }
+            } else if (direction === 'next') {
+                if (Math.floor(this.pagination.count / this.pagination.perpage) != (this.pagination.page - 1)) {
+                    ++this.pagination.page;
+                    this.changePage();
+                }
+            } else if (direction === 'first') {
+                this.pagination.page = 1;
+                this.changePage();
+            } else if (direction === 'last') {
+                this.pagination.page = Math.floor(this.pagination.count / this.pagination.perpage) + 1;
+                this.changePage();
+            }
+        },
+        changePage: function (page) {
+            if (isNaN(parseInt(this.pagination.page))) {
+                this.pagination.page = 1;
+            }
+            this.getData(this.pagination.page);
+        },
+        clearFilter: function () {
+            for (var key in this.params) {
+                if (this.params.hasOwnProperty(key)) {
+                    this.params[key] = '';
+                }
+            }
+            this.search = '';
+            this.search_input = '';
+            this.sortColumn = null;
+            this.sortDir = null;
+            $('.datepicker').val('');
+            this.pagination.page = 1;
+            this.changePage();
+        },
+        sort: function (col) {
+            if (this.sortColumn == col) {
+                this.sortDir = (this.sortDir == 'asc') ? 'desc' : 'asc';
+            } else {
+                this.sortColumn = col;
+                this.sortDir = 'asc';
+            }
+            this.pagination.page = 1;
+            this.changePage();
+        },
+        doSearch: function () {
+            this.search = this.search_input;
+            this.pagination.page = 1;
+            this.changePage();
+        },
+        getData: function(page) {
+            var that = this;
+            this.isLoading = true;
+            $.getJSON("{{ route('{{prefix}}{{class}}.get-data') }},
+            {
+                page: page,
+                perpage: this.pagination.perpage,
+                params: this.params,
+                search: this.search,
+                order: this.sortColumn,
+                order_direction: this.sortDir,
+            },
+            function(data) {
+                that.items = data.data;
+                that.isLoading = false;
+                that.pagination.count = data.count;
+                saveState();
+            });
+        },
+        saveState: function() {
+            var stored = {
+                pagination : JSON.stringify(this.pagination),
+                params : JSON.stringify(this.params),
+                search : this.search,
+                search_input : this.search_input,
+                sortColumn : this.sortColumn,
+                sortDir : this.sortDir,
+                timestamp: new Date().getTime() + 1000 * 60 * 60,
+            };
+            localStorage.setItem(page + '_state',JSON.stringify(stored));
+        },
+        loadState: function() {
+            var stored = JSON.parse(localStorage.getItem(page + '_state'));
+            if (stored) {
+                if (stored.timestamp < new Date().getTime()) return;
+                this.pagination = JSON.parse(stored.pagination);
+                this.params = JSON.parse(stored.params);
+                this.search = stored.search;
+                this.search_input = stored.search_input;
+                this.sortColumn = stored.sortColumn;
+                this.sortDir = stored.sortDir;
+            }
+        },
+    },
+    ready: function() {
+        this.loadState();
+        this.changePage()
+    },
+});

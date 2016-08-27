@@ -32,7 +32,7 @@ class ScaffoldMakeCommand extends Command
      *
      * @var string
      */
-    protected $description = 'Create a scaffold with bootstrap 3';
+    protected $description = 'Create a scaffold with bootstrap 3 and vue js';
 
 
     /**

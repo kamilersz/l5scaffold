@@ -1,10 +1,14 @@
 {
-  "name": "laralib/l5scaffold",
+  "name": "kamilersz/l5scaffold",
   "description": "Extend Laravel 5's generators scaffold.",
-  "keywords": ["laravel", "generators", "scaffold" , "laravel5"],
+  "keywords": ["laravel", "generators", "scaffold" , "laravel5","crud"],
   "license": "MIT",
   "minimum-stability": "dev",
   "authors": [
+    {
+      "name": "Irfan Kamil",
+      "email": "kmz.in.act@gmail.com"
+    },
     {
       "name": "Fernando Brito",
       "email": "fernandobritofl@gmail.com"

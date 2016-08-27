@@ -261,14 +261,14 @@ class SyntaxBuilder
         } elseif ($type == 'view-index-header') {
 
             // Fields to index view
-            $syntax = sprintf("<th>%s", strtoupper($field['name']));
-            $syntax .= '</th>';
+            $syntax = sprintf("<th v-on:click=" sort('%s')">%s", strtolower($field['name']), strtoupper($field['name']));
+            $syntax .= "<span><span v-show=\"sortColumn == '".strtolower($field['name'])."' && sortDir == 'asc'\" class=\"caret\"></span><span v-show=\"sortColumn == '".strtolower($field['name'])."' && sortDir == 'desc' \" class=\"dropup\"><span class=\"caret\"></span></span></span></th>";
 
         } elseif ($type == 'view-index-content') {
 
             // Fields to index view
-            $syntax = sprintf("<td>{{\$%s->%s", $meta['var_name'], strtolower($field['name']));
-            $syntax .= '}}</td>';
+            $syntax = sprintf("<td v-text=\"item.%s\">", strtolower($field['name']));
+            $syntax .= '</td>';
 
         } elseif ($type == 'view-show-content') {
 

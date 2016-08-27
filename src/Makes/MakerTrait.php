@@ -48,7 +48,7 @@ trait MakerTrait {
             return './app/Http/Controllers/' . $file_name . '.php';
 
         } elseif($path == "model"){
-            return './app/'.$file_name.'.php';
+            return './app/model/'.$file_name.'.php';
 
         } elseif($path == "seed"){
             return './database/seeds/'.$file_name.'.php';

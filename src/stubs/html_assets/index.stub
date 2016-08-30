@@ -14,19 +14,19 @@
 <section id="vm">
     <div class="row">
         <div class="col-md-12">
-            Tampilkan &nbsp;
+            Show &nbsp;
             <select class="input-sm" v-model="pagination.perpage" v-on:change="changePage()">
                 <option value="10">10</option>
                 <option value="20">20</option>
                 <option value="50">50</option>
                 <option value="100">100</option>
             </select>
-            Entri &nbsp;
+            Entry &nbsp;
             <div class="animated fadeIn loading pull-right" v-show="isLoading">
-                <h3><i class="fa fa-refresh fa-spin"></i> Sedang memuat data...</h3>
+                <h3><i class="fa fa-refresh fa-spin"></i> Loading data...</h3>
             </div>
             <div class="form-group pull-right">
-                Cari &nbsp;
+                Search &nbsp;
                 <input class="input-sm" type="text" v-model="search_input" v-on:keyup.enter="doSearch()">
             </div>
         </div>
